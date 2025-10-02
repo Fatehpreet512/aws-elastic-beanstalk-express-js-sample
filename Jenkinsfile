@@ -45,7 +45,7 @@ pipeline {
             docker run --platform=linux/amd64 --rm \
               -e SNYK_TOKEN="$SNYK_TOKEN" \
               -v "$WORKSPACE":/app \
-              -w /app snyk/snyk-cli:alpine \
+              -w /app snyk/snyk:node \
               snyk test --severity-threshold=high --json-file-output=snyk-results.json
           '''
         }
