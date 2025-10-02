@@ -47,7 +47,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
                     sh '''
                       echo "🔒 Running Snyk Security Scan..."
-                      docker run --rm \
+                      docker run --platform=linux/amd64 --rm \
                         -e SNYK_TOKEN="$SNYK_TOKEN" \
                         -v "$WORKSPACE":/app \
                         -w /app snyk/snyk-cli:docker bash -lc "
