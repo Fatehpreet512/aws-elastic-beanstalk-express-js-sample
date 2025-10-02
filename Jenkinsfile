@@ -12,7 +12,6 @@ pipeline {
   }
 
   stages {
-
     stage('Checkout Code') {
       steps {
         checkout scm
@@ -23,7 +22,7 @@ pipeline {
       steps {
         sh '''
           echo "📦 Installing dependencies..."
-          docker run --rm -v "$WORKSPACE":/app -w /app node:16 npm install --production
+          docker run --rm -v "$PWD":/app -w /app node:16 npm install --production
         '''
       }
     }
@@ -32,7 +31,7 @@ pipeline {
       steps {
         sh '''
           echo "🧪 Running tests..."
-          docker run --rm -v "$WORKSPACE":/app -w /app node:16 npm test
+          docker run --rm -v "$PWD":/app -w /app node:16 npm test
         '''
       }
     }
@@ -44,9 +43,7 @@ pipeline {
             echo "🔒 Running Snyk Security Scan..."
             docker run --platform=linux/amd64 --rm \
               -e SNYK_TOKEN="$SNYK_TOKEN" \
-              -v "$WORKSPACE":/app \
-              -w /app snyk/snyk:node \
-              snyk test --severity-threshold=high --json-file-output=snyk-results.json
+              -v "$PWD":/app -w /app snyk/snyk:node snyk test --severity-threshold=high --json-file-output=snyk-results.json
           '''
         }
       }
@@ -59,11 +56,15 @@ pipeline {
 
     stage('Docker Build & Push') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'REG_CREDS', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+        withCredentials([usernamePassword(credentialsId: 'REG_USER', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           sh '''
-            echo "🐳 Building and pushing Docker image..."
-            echo "$PASS" | docker login -u "$USER" --password-stdin
+            echo "🐳 Building Docker image..."
             docker build -t "$IMAGE_TAG" .
+
+            echo "🔑 Logging into DockerHub..."
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+            echo "📤 Pushing image to DockerHub..."
             docker push "$IMAGE_TAG"
           '''
         }
