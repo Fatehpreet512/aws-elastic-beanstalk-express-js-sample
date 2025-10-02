@@ -20,8 +20,8 @@ pipeline {
       steps {
         sh '''
           docker run --rm \
-            -v $WORKSPACE:/usr/src/app \
-            -w /usr/src/app node:16 \
+            -v $(pwd):/app \
+            -w /app node:16 \
             npm install --production
         '''
       }
@@ -31,8 +31,8 @@ pipeline {
       steps {
         sh '''
           docker run --rm \
-            -v $WORKSPACE:/usr/src/app \
-            -w /usr/src/app node:16 \
+            -v $(pwd):/app \
+            -w /app node:16 \
             npm test
         '''
       }
@@ -44,8 +44,8 @@ pipeline {
           sh '''
             docker run --rm \
               -e SNYK_TOKEN="$SNYK_TOKEN" \
-              -v $WORKSPACE:/usr/src/app \
-              -w /usr/src/app snyk/snyk:stable bash -lc "
+              -v $(pwd):/app \
+              -w /app snyk/snyk:stable bash -lc "
                 snyk auth \$SNYK_TOKEN &&
                 snyk test --severity-threshold=high --json-file-output=snyk-results.json
               "
@@ -64,7 +64,7 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'REG_CREDS', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
           sh '''
             echo "$PASS" | docker login -u "$USER" --password-stdin
-            docker build -t "$IMAGE_TAG" $WORKSPACE
+            docker build -t "$IMAGE_TAG" $(pwd)
             docker push "$IMAGE_TAG"
           '''
         }
