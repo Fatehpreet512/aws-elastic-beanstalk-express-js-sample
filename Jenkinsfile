@@ -1,9 +1,8 @@
-cat > Jenkinsfile <<'EOF'
 pipeline {
   agent any
 
   environment {
-    DOCKER_HOST = 'tcp://dind:2375'                     
+    DOCKER_HOST = 'tcp://dind:2375'
     IMAGE_TAG   = "fatehpreet/eb-express:${env.BUILD_NUMBER}"
   }
 
@@ -17,7 +16,7 @@ pipeline {
       steps { checkout scm }
     }
 
-    stage('Install Dependencies (Node 16)') {
+    stage('Install Dependencies') {
       steps {
         sh '''
           docker run --rm -v "$PWD":/app -w /app node:16 bash -lc "
@@ -37,7 +36,7 @@ pipeline {
       }
     }
 
-    stage('Security Scan (Snyk) - fail on High/Critical') {
+    stage('Security Scan (Snyk)') {
       steps {
         withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
           sh '''
@@ -70,4 +69,3 @@ pipeline {
     }
   }
 }
-EOF
