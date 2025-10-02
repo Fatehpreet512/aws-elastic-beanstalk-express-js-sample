@@ -19,9 +19,10 @@ pipeline {
     stage('Install Dependencies') {
       steps {
         sh '''
-          docker run --rm -v "$PWD":/app -w /app node:16 bash -lc "
-            npm install --save
-          "
+          docker run --rm \
+            -v "$PWD":/usr/src/app \
+            -w /usr/src/app node:16 \
+            npm install --production
         '''
       }
     }
@@ -29,9 +30,10 @@ pipeline {
     stage('Run Tests') {
       steps {
         sh '''
-          docker run --rm -v "$PWD":/app -w /app node:16 bash -lc "
+          docker run --rm \
+            -v "$PWD":/usr/src/app \
+            -w /usr/src/app node:16 \
             npm test
-          "
         '''
       }
     }
@@ -42,7 +44,8 @@ pipeline {
           sh '''
             docker run --rm \
               -e SNYK_TOKEN="$SNYK_TOKEN" \
-              -v "$PWD":/app -w /app snyk/snyk:stable bash -lc "
+              -v "$PWD":/usr/src/app \
+              -w /usr/src/app snyk/snyk:stable bash -lc "
                 snyk auth \$SNYK_TOKEN &&
                 snyk test --severity-threshold=high --json-file-output=snyk-results.json
               "
