@@ -50,10 +50,8 @@ pipeline {
                       docker run --platform=linux/amd64 --rm \
                         -e SNYK_TOKEN="$SNYK_TOKEN" \
                         -v "$WORKSPACE":/app \
-                        -w /app snyk/snyk-cli:docker bash -lc "
-                          snyk auth $SNYK_TOKEN &&
-                          snyk test --severity-threshold=high --json-file-output=snyk-results.json
-                        "
+                        -w /app snyk/snyk-cli:1.1297.0 \
+                        snyk test --severity-threshold=high --json-file-output=snyk-results.json
                     '''
                 }
             }
